@@ -7,7 +7,7 @@ CC = avr-gcc
 OBJCOPY = avr-objcopy
 TARGET = main
 
-#OBJDIR := build
+OBJDIR := build
 #VPATH := src
 
 
@@ -23,17 +23,22 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
 AVRDUDE_FLAGS = -F -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER) -b $(UPLOAD_RATE)
 
 
-all: $(TARGET).hex
+all: $(OBJDIR)/$(TARGET).hex
 	avrdude $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
 
-$(TARGET).hex: $(TARGET)
+$(OBJDIR)/$(TARGET).hex: $(OBJDIR)/$(TARGET)
 	$(OBJCOPY) -O ihex -R .eeprom $^ $@
 
-$(TARGET): $(TARGET).o
+$(OBJDIR)/$(TARGET): $(OBJDIR)/$(TARGET).o
 	$(CC) -mmcu=$(MCU) $^ -o $@
 
-$(TARGET).o: $(TARGET).c
+$(OBJDIR)/$(TARGET).o: src/$(TARGET).c
 	$(CC) -Os -DF_CPU=$(F_CPU) -mmcu=$(MCU) -c -o $@ $^
+
+src/$(TARGET).c: | $(OBJDIR)
+
+$(OBJDIR):
+	mkdir -p $@
 
 clean:
 	-rm -r build/*
