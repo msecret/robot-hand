@@ -14,16 +14,19 @@ OBJDIR := build
 ARDUINO_DIR = /usr/share/arduino
 F_CPU = 16000000
 MCU ?= atmega328p
-PORT ?= /dev/tty.usbserial*
+PORT ?= /dev/ttyACM0
 UPLOAD_RATE ?= 115200
 
-AVRDUDE_PROGRAMMER = stk500
+AVRDUDE_PROGRAMMER = arduino
 AVRDUDE_PORT = $(PORT)
-AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex
+AVRDUDE_WRITE_FLASH = -U flash:w:$^
 AVRDUDE_FLAGS = -F -p $(MCU) -P $(AVRDUDE_PORT) -c $(AVRDUDE_PROGRAMMER) -b $(UPLOAD_RATE)
 
 
-all: $(OBJDIR)/$(TARGET).hex
+all: $(OBJDIR)/$(TARGET)
+	$(OBJCOPY) -O ihex -R .eeprom $^ $@
+
+upload: $(OBJDIR)/$(TARGET).hex
 	avrdude $(AVRDUDE_FLAGS) $(AVRDUDE_WRITE_FLASH)
 
 $(OBJDIR)/$(TARGET).hex: $(OBJDIR)/$(TARGET)
